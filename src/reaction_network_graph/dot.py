@@ -36,7 +36,7 @@ def to_dot(
     >>> from reaction_network_graph.models import Species, Stage
     >>> from reaction_network_graph.network import ReactionNetwork
     >>> a = Stage(name="A", species=[Species(name="A")])
-    >>> network = ReactionNetwork.build([a], [])
+    >>> network = ReactionNetwork.build([], stages=[a])
     >>> print(to_dot(network, graph_name="example"))
     graph example {
     layout=neato;
@@ -67,7 +67,7 @@ def write_dot(
     >>> from reaction_network_graph.models import Species, Stage
     >>> from reaction_network_graph.network import ReactionNetwork
     >>> a = Stage(name="A", species=[Species(name="A")])
-    >>> network = ReactionNetwork.build([a], [])
+    >>> network = ReactionNetwork.build([], stages=[a])
     >>> with tempfile.TemporaryDirectory() as tmp:
     ...     out = Path(tmp) / "network.dot"
     ...     write_dot(network, out)
@@ -95,7 +95,7 @@ def write_svg(
     >>> from reaction_network_graph.models import Species, Stage
     >>> from reaction_network_graph.network import ReactionNetwork
     >>> a = Stage(name="A", species=[Species(name="A")])
-    >>> network = ReactionNetwork.build([a], [])
+    >>> network = ReactionNetwork.build([], stages=[a])
     >>> with tempfile.TemporaryDirectory() as tmp:
     ...     out = Path(tmp) / "network.svg"
     ...     write_svg(network, out)

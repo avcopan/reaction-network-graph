@@ -39,7 +39,7 @@ class ReactionNetwork[StageT: Stage, StepT: Step](BaseModel):
     >>> a = Stage(name="A", species=[Species(name="A")])
     >>> bc = Stage(name="B+C", species=[Species(name="B"), Species(name="C")])
     >>> ts = Step(name="TS1")
-    >>> network = ReactionNetwork.build([a, bc], [("A", "B+C", ts)])
+    >>> network = ReactionNetwork.build([(a, bc, ts)])
     >>> network.stage("A").name
     'A'
     >>> network.stage_names()
@@ -53,22 +53,39 @@ class ReactionNetwork[StageT: Stage, StepT: Step](BaseModel):
     @classmethod
     def build(
         cls,
-        stages: Sequence[StageT],
-        steps: Sequence[tuple[str, str, StepT]],
+        data: Sequence[tuple[StageT, StageT, StepT]],
+        *,
+        stages: Sequence[StageT] = (),
     ) -> Self:
-        """Build a network from stages and (stage_a, stage_b, step) triples."""
+        """Build a network from (stage_a, stage_b, step) triples.
+
+        Stages that recur across multiple triples (or that are also passed via
+        `stages`) are deduplicated by name, as long as every mention agrees on
+        the stage's payload. `stages` is only needed for stages that aren't
+        connected by any step.
+        """
         graph = nx.MultiGraph()
-        for stage in stages:
+
+        def _add_stage(stage: StageT) -> None:
             if stage.name in graph:
-                msg = f"Duplicate stage name: {stage.name!r}"
-                raise ValueError(msg)
-            graph.add_node(stage.name, **{_STAGE_KEY: stage})
-        for stage_a, stage_b, step in steps:
-            for endpoint in (stage_a, stage_b):
-                if endpoint not in graph:
-                    msg = f"Step {step.name!r} references unknown stage {endpoint!r}"
+                existing = graph.nodes[stage.name][_STAGE_KEY]
+                if existing != stage:
+                    msg = (
+                        "Duplicate stage name with conflicting definition: "
+                        f"{stage.name!r}"
+                    )
                     raise ValueError(msg)
-            graph.add_edge(stage_a, stage_b, key=step.name, **{_STEP_KEY: step})
+                return
+            graph.add_node(stage.name, **{_STAGE_KEY: stage})
+
+        for stage in stages:
+            _add_stage(stage)
+        for stage_a, stage_b, step in data:
+            _add_stage(stage_a)
+            _add_stage(stage_b)
+            graph.add_edge(
+                stage_a.name, stage_b.name, key=step.name, **{_STEP_KEY: step}
+            )
         return cls(graph=graph)
 
     @model_validator(mode="after")
