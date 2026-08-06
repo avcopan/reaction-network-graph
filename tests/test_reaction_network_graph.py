@@ -3,16 +3,12 @@
 import reaction_network_graph
 
 
-def test_stub() -> None:
-    """Stub test to ensure the test suite runs."""
-    print(reaction_network_graph.__version__)  # noqa: T201
+def test__version() -> None:
+    """The package should expose a version string."""
+    assert isinstance(reaction_network_graph.__version__, str)
 
 
-def test__greet() -> None:
-    """Test the greet function."""
-    assert reaction_network_graph.greet("World") == "Hello, World!"
-
-
-def test__greet_jim() -> None:
-    """Test the greet_jim function."""
-    assert reaction_network_graph.greet_jim() == "Hello, Jim!"
+def test__public_api_is_importable() -> None:
+    """Every name in __all__ should be importable from the top-level package."""
+    for name in reaction_network_graph.__all__:
+        assert hasattr(reaction_network_graph, name)

@@ -3,7 +3,10 @@ name = "reaction-network-graph"
 version = "0.0.0"
 authors = [{name = "Andreas V. Copan", email = "avcopan@uga.edu"}]
 requires-python = ">= 3.12"
-dependencies = []
+dependencies = [
+    "networkx",
+    "pydantic",
+]
 
 [build-system]
 build-backend = "uv_build"
@@ -51,8 +54,9 @@ root_package = "reaction_network_graph"
 name = "Module Layering"
 type = "layers"
 layers = [
-    "reaction_network_graph.layer2",
-    "reaction_network_graph.layer1",
+    "reaction_network_graph.dot",
+    "reaction_network_graph.network",
+    "reaction_network_graph.models",
 ]
 
 # Pytest configurations
