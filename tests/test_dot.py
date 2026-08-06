@@ -2,24 +2,50 @@
 
 from pathlib import Path
 
-from reaction_network_graph.dot import to_dot, write_dot
-from reaction_network_graph.models import Species, Stage, Transition
+from reaction_network_graph.dot import to_dot, write_dot, write_svg
+from reaction_network_graph.models import Species, Stage, Step
 from reaction_network_graph.network import ReactionNetwork
 
 
-def test__to_dot_well_shape() -> None:
-    """A unimolecular stage should be rendered as a filled box."""
+def test__to_dot_renders_stage_as_pink_circle() -> None:
+    """A stage should be rendered as a filled pink circle."""
     network = ReactionNetwork.build([Stage(name="A", species=[Species(name="A")])], [])
     dot = to_dot(network)
-    assert '"A" [label="A", shape=box, style=filled, fillcolor=lightgrey];' in dot
+    assert '"A" [label=A, shape=circle, style=filled, fillcolor="#df8bbb"];' in dot
 
 
-def test__to_dot_bimolecular_shape() -> None:
-    """A bimolecular stage should be rendered as an unfilled ellipse."""
+def test__to_dot_renders_species_as_satellite_node() -> None:
+    """Each species should be its own satellite node, edged to its stage."""
+    network = ReactionNetwork.build([Stage(name="A", species=[Species(name="A")])], [])
+    dot = to_dot(network)
+    assert (
+        '"A__species0" [label=A, shape=circle, style=filled, fillcolor="#fc8d62"];'
+        in dot
+    )
+    assert '"A" -- "A__species0" [color=black, penwidth=1];' in dot
+
+
+def test__to_dot_renders_multiple_species_satellites() -> None:
+    """A bimolecular stage should get one satellite node per species."""
     stage = Stage(name="B+C", species=[Species(name="B"), Species(name="C")])
     network = ReactionNetwork.build([stage], [])
     dot = to_dot(network)
-    assert '"B+C" [label="B + C", shape=ellipse];' in dot
+    assert '"B+C__species0" [label=B,' in dot
+    assert '"B+C__species1" [label=C,' in dot
+
+
+def test__to_dot_renders_step_as_blue_square_between_stages() -> None:
+    """A step should be a blue square with edges to both of its stages."""
+    stages = [
+        Stage(name="A", species=[Species(name="A")]),
+        Stage(name="B", species=[Species(name="B")]),
+    ]
+    step = Step(name="TS1")
+    network = ReactionNetwork.build(stages, [("A", "B", step)])
+    dot = to_dot(network)
+    assert '"TS1" [label=TS1, shape=square, style=filled, fillcolor="#8da0cb"];' in dot
+    assert '"A" -- "TS1" [color="#8da0cb", penwidth=3];' in dot
+    assert '"TS1" -- "B" [color="#8da0cb", penwidth=3];' in dot
 
 
 def test__to_dot_stage_label_with_energy() -> None:
@@ -28,38 +54,37 @@ def test__to_dot_stage_label_with_energy() -> None:
     network = ReactionNetwork.build([stage], [])
     dot = to_dot(network)
     assert (
-        '"A" [label="A\n(1.5)", shape=box, style=filled, fillcolor=lightgrey];' in dot
+        '"A" [label="A\\n(1.5)", shape=circle, style=filled, fillcolor="#df8bbb"];'
+        in dot
     )
 
 
-def test__to_dot_transition_label_with_energy() -> None:
-    """A transition's energy should be appended to its label on a second line."""
+def test__to_dot_step_label_with_energy() -> None:
+    """A step's energy should be appended to its label on a second line."""
     stages = [
         Stage(name="A", species=[Species(name="A")]),
         Stage(name="B", species=[Species(name="B")]),
     ]
-    transition = Transition(name="TS1", energy=10.0)
-    network = ReactionNetwork.build(stages, [("A", "B", transition)])
+    step = Step(name="TS1", energy=10.0)
+    network = ReactionNetwork.build(stages, [("A", "B", step)])
     dot = to_dot(network)
-    assert '"A" -- "B" [id="TS1", label="TS1\n(10.0)"];' in dot
+    assert (
+        '"TS1" [label="TS1\\n(10.0)", shape=square, style=filled, fillcolor="#8da0cb"];'
+        in dot
+    )
 
 
-def test__to_dot_uses_undirected_edge_syntax() -> None:
+def test__to_dot_uses_undirected_graph_syntax() -> None:
     """DOT output should use the `graph`/`--` undirected syntax, not `digraph`/`->`."""
-    stages = [
-        Stage(name="A", species=[Species(name="A")]),
-        Stage(name="B", species=[Species(name="B")]),
-    ]
-    transition = Transition(name="TS1")
-    network = ReactionNetwork.build(stages, [("A", "B", transition)])
+    network = ReactionNetwork.build([Stage(name="A", species=[Species(name="A")])], [])
     dot = to_dot(network)
     assert dot.startswith("graph ")
     assert "--" in dot
     assert "->" not in dot
 
 
-def test__to_dot_escapes_special_characters() -> None:
-    """Stage names containing quotes should be escaped in the DOT output."""
+def test__to_dot_escapes_special_characters_in_identifiers() -> None:
+    """Stage names containing quotes should be escaped in DOT identifiers."""
     stage = Stage(name='A"1', species=[Species(name="A")])
     network = ReactionNetwork.build([stage], [])
     dot = to_dot(network)
@@ -67,9 +92,18 @@ def test__to_dot_escapes_special_characters() -> None:
 
 
 def test__write_dot(tmp_path: Path) -> None:
-    """write_dot() should write to_dot()'s content plus a trailing newline."""
+    """write_dot() should write the same DOT text to_dot() returns."""
     stage = Stage(name="A", species=[Species(name="A")])
     network = ReactionNetwork.build([stage], [])
     out = tmp_path / "network.dot"
     write_dot(network, out)
-    assert out.read_text() == to_dot(network) + "\n"
+    assert out.read_text() == to_dot(network)
+
+
+def test__write_svg(tmp_path: Path) -> None:
+    """write_svg() should render a real SVG file via Graphviz."""
+    stage = Stage(name="A", species=[Species(name="A")])
+    network = ReactionNetwork.build([stage], [])
+    out = tmp_path / "network.svg"
+    write_svg(network, out)
+    assert out.read_text().startswith("<?xml")

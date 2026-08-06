@@ -211,6 +211,10 @@ cython_debug/
 # Claude Code local settings (personal permissions/overrides, not shared)
 .claude/settings.local.json
 
+# Generated output from running notebooks/full_pipeline_example.ipynb
+notebooks/*.dot
+notebooks/*.svg
+
 # Marimo
 marimo/_static/
 marimo/_lsp/

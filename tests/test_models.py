@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from reaction_network_graph.models import Species, Stage, Transition
+from reaction_network_graph.models import Species, Stage, Step
 
 
 def test__species_defaults() -> None:
@@ -57,10 +57,10 @@ def test__stage_is_frozen_and_hashable() -> None:
     assert stage == Stage(name="A", species=[Species(name="A")])
 
 
-def test__transition_is_frozen_and_hashable() -> None:
-    """Transition instances should be frozen and hashable, with value equality."""
-    transition = Transition(name="TS1")
+def test__step_is_frozen_and_hashable() -> None:
+    """Step instances should be frozen and hashable, with value equality."""
+    step = Step(name="TS1")
     with pytest.raises(ValidationError):
-        transition.energy = 1.0  # ty: ignore[invalid-assignment]
-    assert hash(transition) == hash(Transition(name="TS1"))
-    assert transition == Transition(name="TS1")
+        step.energy = 1.0  # ty: ignore[invalid-assignment]
+    assert hash(step) == hash(Step(name="TS1"))
+    assert step == Step(name="TS1")

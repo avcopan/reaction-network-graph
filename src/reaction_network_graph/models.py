@@ -1,4 +1,4 @@
-"""Pydantic data models for species, stages, and transitions."""
+"""Pydantic data models for species, stages, and steps."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class _EnergyLevel(BaseModel):
-    """Fields shared by stages and transitions.
+    """Fields shared by stages and steps.
 
-    Both a `Stage` (a well or bimolecular channel) and a `Transition` (a
+    Both a `Stage` (a well or bimolecular channel) and a `Step` (a
     transition state) are described by the same kind of energetic data, as
     they are in master-equation solver inputs.
     """
@@ -60,17 +60,17 @@ class Stage(_EnergyLevel):
         return len(self.species) == 1
 
 
-class Transition(_EnergyLevel):
+class Step(_EnergyLevel):
     """A network edge: the transition state connecting two stages.
 
-    Which two stages a transition connects is determined entirely by its
+    Which two stages a step connects is determined entirely by its
     position in a `ReactionNetwork`'s graph, not by any field on this model
-    - so the same `Transition` payload can be freely rewired to a different
+    - so the same `Step` payload can be freely rewired to a different
     pair of stages without needing to be reconstructed.
 
     Examples
     --------
-    >>> transition = Transition(name="TS1", energy=12.0)
-    >>> transition.name
+    >>> step = Step(name="TS1", energy=12.0)
+    >>> step.name
     'TS1'
     """

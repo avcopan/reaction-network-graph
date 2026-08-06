@@ -5,6 +5,7 @@ preview = ["pixi-build"]
 
 [dependencies]
 reaction-network-graph = { path = "." }
+graphviz = "*"
 
 [package]
 name = "reaction-network-graph"

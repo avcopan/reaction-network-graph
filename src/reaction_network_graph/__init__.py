@@ -2,8 +2,16 @@
 
 __version__ = "0.0.0"
 
-from .dot import to_dot, write_dot
-from .models import Species, Stage, Transition
+from .dot import to_dot, write_dot, write_svg
+from .models import Species, Stage, Step
 from .network import ReactionNetwork
 
-__all__ = ["ReactionNetwork", "Species", "Stage", "Transition", "to_dot", "write_dot"]
+__all__ = [
+    "ReactionNetwork",
+    "Species",
+    "Stage",
+    "Step",
+    "to_dot",
+    "write_dot",
+    "write_svg",
+]
