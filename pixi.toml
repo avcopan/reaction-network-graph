@@ -83,3 +83,5 @@ hooks = "./scripts/hooks.sh"
 setup = "./scripts/setup.sh"
 init = { cmd = "./scripts/init.sh", depends-on = ["setup"]}
 cookiecutter-update = "./scripts/cookiecutter-update.sh"
+# Claude Code Sandbox
+sandbox = 'podman run --rm -it -v "$PWD":/workspace:Z -v claude-config:/root/.claude sandbox'
